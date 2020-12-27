@@ -4,26 +4,31 @@ class Input():
 
   def update_input(self, new_state):
     for action in self.actions:
-      bindings = self.actions[action]["bindings"]
+      binding = self.actions[action]["binding"]
       processors = self.actions[action]["processors"]
 
+      # Ask the binding to update this actions value
       self.actions[action]["value"] = binding(new_state)
 
+      # Apply this actions processors to this actions value
       for processor in processors:
         if type(self.actions[action]["value"]) is list:
           self.actions[action]["value"] = [processor(component) for component in self.actions[action]["value"]]
         else:
           self.actions[action]["value"] = processor(self.actions[action]["value"])
 
-
   def on_change(self, action, callback):
     pass
 
-
+  def get(self, action):
+    return self.actions[action]["value"]
 
   def new_action(self, name, binding, processors=[]):
     if name in (None, ""):
       raise NameError("Action must have a name")
+
+    if binding == None:
+      raise ValueError("Action must have a binding")
 
     self.actions[name] = {
       "value": None,
@@ -32,12 +37,24 @@ class Input():
     }
 
   class bindings():
+    """
+    Bindings are used to map new state input to action values
+    """
+
     @staticmethod
     def value(key):
+      """
+      Maps one new input state to one action value
+      Ideal for jumping, opening GUI and changing state like running.
+      """
       return lambda keys: keys[key]
 
     @staticmethod
     def vector2(horizontal_key, vertical_key):
+      """
+      Maps two new input state to two action values
+      Ideal for mouse movement and WASD movement
+      """
       return lambda keys: [keys[horizontal_key], keys[vertical_key]]
     
   class processors():
