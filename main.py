@@ -24,7 +24,7 @@ def main():
   controller = Controller()
 
   #input.on_change("mouse", lambda value: print("new Δmouse", value))
-  #input.on_change("click", lambda value: print("jump", value))
+  input.on_change("click", lambda value: controller.click(Button.left) if value else None)
 
   while True:
     # Removing the last two characters to remove new line characters
@@ -35,12 +35,10 @@ def main():
       continue
 
     mouse = input.get("mouse")
+    print(mouse)
     if mouse != [0, 0]:
       controller.move(*[component * 60 for component in mouse])
 
-    click = input.get("click")
-    if click:
-      controller.click(Button.left)
 
 if __name__ == "__main__":
   import serial
@@ -50,4 +48,3 @@ if __name__ == "__main__":
   import json
   import time
   main()
-

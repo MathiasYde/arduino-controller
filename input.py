@@ -1,24 +1,46 @@
 class Input():
   def __init__(self):
     self.actions = {}
+    self.previous_state = {}
+    self.on_change_listeners = {}
 
   def update_input(self, new_state):
-    for action in self.actions:
-      binding = self.actions[action]["binding"]
-      processors = self.actions[action]["processors"]
+    for action, attributes in self.actions.items():
+      binding = attributes["binding"]
+      processors = attributes["processors"]
 
-      # Ask the binding to update this actions value
-      self.actions[action]["value"] = binding(new_state)
+      # Get value from binding
+      attributes["value"] = binding(new_state)
 
-      # Apply this actions processors to this actions value
+      # Apply processors
       for processor in processors:
-        if type(self.actions[action]["value"]) is list:
-          self.actions[action]["value"] = [processor(component) for component in self.actions[action]["value"]]
+        if type(attributes["value"]) is list:
+          attributes["value"] = [processor(component) for component in attributes["value"]]
         else:
-          self.actions[action]["value"] = processor(self.actions[action]["value"])
+          attributes["value"] = processor(attributes["value"])
+
+      # set previous state to None if none existant
+      if action not in self.previous_state:
+        self.previous_state[action] = None
+
+      # check for changes
+      if self.previous_state[action] == attributes["value"]:
+        continue
+
+      # notify all listeners for this action
+      for listener in self.on_change_listeners:
+        if listener == action:
+          for callback in self.on_change_listeners[listener]:
+            callback(attributes["value"])
+
+      # update previous state for this action
+      self.previous_state[action] = attributes["value"]
 
   def on_change(self, action, callback):
-    pass
+    if action not in self.on_change_listeners:
+      self.on_change_listeners[action] = []
+
+    self.on_change_listeners[action].append(callback)
 
   def get(self, action):
     return self.actions[action]["value"]
